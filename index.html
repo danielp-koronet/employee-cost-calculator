@@ -1,0 +1,1444 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title data-i18n="pageTitle">Calculadora de Costos de Contratación · Contractor / EOR / Empleado Directo</title>
+<style>
+  /* === LIGHT THEME (default) — Deel-style Purple === */
+  :root, [data-theme="light"] {
+    --bg: #ffffff;
+    --bg-gradient-start: #ffffff;
+    --bg-gradient-end: #faf9ff;
+    --panel: #ffffff;
+    --panel-2: #faf9ff;
+    --border: #ece9f5;
+    --text: #1a1a2e;
+    --muted: #6b7280;
+    --accent: #7c3aed;
+    --accent-soft: #ede9fe;
+    --accent-2: #a78bfa;
+    --good: #10b981;
+    --good-soft: #ecfdf5;
+    --warn: #f59e0b;
+    --bad: #ef4444;
+    --chip: #7c3aed;
+    --chart-bar-1: #7c3aed;
+    --chart-bar-2: #a78bfa;
+    --chart-bar-3: #10b981;
+    --shadow-card: 0 1px 3px rgba(124, 58, 237, 0.06), 0 1px 2px rgba(0,0,0,0.04);
+  }
+  /* === DARK THEME — Purple-tinted charcoal === */
+  [data-theme="dark"] {
+    --bg: #0c0a1f;
+    --bg-gradient-start: #0a0820;
+    --bg-gradient-end: #16132e;
+    --panel: #16132e;
+    --panel-2: #1d1a37;
+    --border: #2d2a48;
+    --text: #f5f3ff;
+    --muted: #a89db8;
+    --accent: #a78bfa;
+    --accent-soft: #2a1f54;
+    --accent-2: #c4b5fd;
+    --good: #34d399;
+    --good-soft: #064e3b;
+    --warn: #fbbf24;
+    --bad: #f87171;
+    --chip: #a78bfa;
+    --chart-bar-1: #a78bfa;
+    --chart-bar-2: #c4b5fd;
+    --chart-bar-3: #34d399;
+    --shadow-card: 0 1px 3px rgba(0,0,0,0.4);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: linear-gradient(180deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 24px;
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+  header {
+    max-width: 1280px;
+    margin: 0 auto 24px;
+  }
+  header h1 {
+    margin: 0 0 6px;
+    font-size: 26px;
+    letter-spacing: -0.3px;
+  }
+  header p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 14px;
+  }
+  .brand-logo {
+    height: 44px;
+    width: auto;
+    display: block;
+    transition: filter 0.2s ease;
+  }
+  [data-theme="dark"] .brand-logo {
+    filter: invert(1) brightness(1.05);
+  }
+  .layout {
+    max-width: 1280px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 360px 1fr;
+    gap: 20px;
+  }
+  @media (max-width: 980px) {
+    .layout { grid-template-columns: 1fr; }
+  }
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px;
+    box-shadow: var(--shadow-card);
+  }
+  .panel h2 {
+    margin: 0 0 14px;
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--muted);
+  }
+  label {
+    display: block;
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 4px;
+    margin-top: 12px;
+  }
+  input, select {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--panel-2);
+    color: var(--text);
+    font-size: 14px;
+    outline: none;
+  }
+  input:focus, select:focus {
+    border-color: var(--accent);
+  }
+  .row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .results {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+  @media (max-width: 1100px) {
+    .results { grid-template-columns: 1fr; }
+  }
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: var(--shadow-card);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .card:hover {
+    transform: translateY(-1px);
+  }
+  .card.best {
+    border-color: var(--good);
+    box-shadow: 0 0 0 2px var(--good-soft), var(--shadow-card);
+  }
+  .card.unavailable {
+    border-style: dashed;
+    border-color: var(--border);
+    background: var(--panel-2);
+    opacity: 0.92;
+  }
+  .card.unavailable:hover { transform: none; }
+  .card.unavailable h3 { color: var(--muted); }
+  .card.unavailable .desc { opacity: 0.7; }
+  .unavailable-body {
+    text-align: center;
+    padding: 28px 12px 20px;
+    border-top: 1px dashed var(--border);
+    margin-top: 4px;
+  }
+  .unavailable-icon {
+    font-size: 36px;
+    line-height: 1;
+    margin-bottom: 10px;
+    opacity: 0.55;
+    filter: grayscale(1);
+  }
+  .unavailable-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+  .unavailable-msg {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.5;
+    max-width: 280px;
+    margin: 0 auto;
+  }
+  .badge {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    background: var(--good-soft);
+    color: var(--good);
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.4px;
+  }
+  .card h3 {
+    margin: 0 0 4px;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .platform-badge {
+    display: inline-flex;
+    align-items: center;
+    background: var(--accent-soft);
+    color: var(--accent);
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+    line-height: 1;
+  }
+  .card .desc {
+    color: var(--muted);
+    font-size: 12px;
+    margin-bottom: 16px;
+    line-height: 1.4;
+  }
+  .total {
+    font-size: 30px;
+    font-weight: 700;
+    margin: 6px 0 2px;
+    color: var(--text);
+  }
+  .total-usd {
+    font-size: 13px;
+    color: var(--accent);
+    margin-bottom: 12px;
+  }
+  .total-annual {
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px dashed var(--border);
+  }
+  .lineitems {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    font-size: 13px;
+  }
+  .lineitems li {
+    display: flex;
+    justify-content: space-between;
+    padding: 5px 0;
+    color: var(--muted);
+  }
+  .lineitems li span:last-child {
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+  }
+  .footer-note {
+    max-width: 1280px;
+    margin: 24px auto 0;
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+  button {
+    background: var(--accent);
+    color: #ffffff;
+    border: none;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 13px;
+    margin-top: 12px;
+    transition: opacity 0.15s ease;
+  }
+  button:hover { opacity: 0.9; }
+  button.secondary {
+    background: var(--accent-soft);
+    color: var(--accent);
+    border: 1px solid transparent;
+  }
+  /* === Language dropdown === */
+  .lang-dropdown {
+    position: relative;
+    display: inline-block;
+  }
+  .lang-trigger {
+    background: var(--panel);
+    color: var(--text);
+    border: 1px solid var(--border);
+    padding: 7px 10px 7px 7px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    margin: 0;
+    transition: background 0.15s ease, border-color 0.15s ease;
+  }
+  .lang-trigger:hover {
+    background: var(--panel-2);
+    border-color: var(--accent);
+  }
+  .lang-trigger .chevron {
+    font-size: 11px;
+    color: var(--muted);
+    transition: transform 0.18s ease;
+    line-height: 1;
+    margin-left: 1px;
+  }
+  .lang-dropdown.open .lang-trigger .chevron {
+    transform: rotate(180deg);
+  }
+  .lang-menu {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    min-width: 170px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 6px;
+    box-shadow: 0 10px 28px rgba(0,0,0,0.12), 0 2px 6px rgba(0,0,0,0.05);
+    display: none;
+    z-index: 100;
+  }
+  .lang-dropdown.open .lang-menu { display: block; }
+  .lang-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    background: transparent;
+    border: none;
+    padding: 9px 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    color: var(--text);
+    font-size: 14px;
+    font-weight: 500;
+    text-align: left;
+    margin: 0;
+    transition: background 0.12s ease;
+  }
+  .lang-option:hover { background: var(--accent-soft); color: var(--accent); }
+  .lang-option.active { color: var(--accent); background: var(--accent-soft); }
+  .flag-slot {
+    display: inline-flex;
+    flex-shrink: 0;
+  }
+  details {
+    margin-top: 14px;
+    border-top: 1px dashed var(--border);
+    padding-top: 12px;
+  }
+  details summary {
+    cursor: pointer;
+    color: var(--accent);
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .country-editor {
+    font-size: 12px;
+    margin-top: 8px;
+  }
+  .country-editor .row3 {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 6px;
+  }
+  .country-editor input { font-size: 12px; padding: 6px 8px; }
+  .country-editor label { margin-top: 6px; }
+  .chip {
+    display: inline-block;
+    background: var(--accent-soft);
+    color: var(--accent);
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 11px;
+    margin-right: 4px;
+    margin-bottom: 4px;
+  }
+  .helper {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 4px;
+    line-height: 1.4;
+  }
+</style>
+</head>
+<body>
+<header style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px">
+  <div>
+    <img src="koronet-logo.png" alt="Koronet" class="brand-logo" />
+    <h1 style="margin-top:18px" data-i18n="appTitle">Calculadora de Costos de Contratación Internacional</h1>
+    <p data-i18n-html="appSubtitle">Compara el costo total de contratar a una persona como <b>Contractor</b>, vía <b>EOR</b>, o como <b>Empleado Directo</b>. Resultados en moneda local y USD.</p>
+  </div>
+  <div style="display:flex;gap:8px;flex-shrink:0;align-items:flex-start">
+    <div class="lang-dropdown" id="langDropdown">
+      <button class="lang-trigger" onclick="toggleLangMenu(event)" type="button" title="Cambiar idioma / Switch language">
+        <span class="flag-slot" id="currentLangFlag"></span>
+        <span id="langToggleLabel">EN</span>
+        <span class="chevron" aria-hidden="true">⌄</span>
+      </button>
+      <div class="lang-menu" id="langMenu">
+        <button class="lang-option" data-lang="en" onclick="selectLang('en')" type="button">
+          <span class="flag-slot" data-flag="en"></span>
+          <span>English</span>
+        </button>
+        <button class="lang-option" data-lang="es" onclick="selectLang('es')" type="button">
+          <span class="flag-slot" data-flag="es"></span>
+          <span>Español</span>
+        </button>
+      </div>
+    </div>
+    <button id="themeToggle" class="secondary" onclick="toggleTheme()" style="margin-top:0;white-space:nowrap" title="Cambiar tema">
+      <span id="themeToggleIcon">🌙</span> <span id="themeToggleLabel">Oscuro</span>
+    </button>
+  </div>
+</header>
+
+<div class="layout">
+  <div class="panel" id="inputs">
+    <h2 data-i18n="paramsHeader">Parámetros</h2>
+
+    <div id="fxStatusBar" style="background:var(--panel-2);border:1px solid var(--border);border-radius:8px;padding:8px 10px;margin-bottom:6px;font-size:11px;color:var(--muted);display:flex;justify-content:space-between;align-items:center;gap:6px">
+      <span id="fxStatus" data-i18n="fxLoading">Cargando tasas...</span>
+      <button id="fxRefresh" class="secondary" style="margin:0;padding:4px 10px;font-size:11px" onclick="refreshFx()" data-i18n="fxRefresh">Actualizar</button>
+    </div>
+
+    <label for="country" data-i18n="countryLabel">País</label>
+    <select id="country"></select>
+
+    <label for="salary"><span data-i18n="grossSalary">Salario bruto mensual</span> <span id="salaryCurrency">(USD)</span></label>
+    <input type="number" id="salary" value="5000" min="0" step="100" />
+    <div class="helper" data-i18n="grossSalaryHelper">Salario que recibe la persona (bruto, antes de impuestos del empleado).</div>
+
+    <label for="salaryInput" data-i18n="inputCurrencyLabel">Ingresar salario en:</label>
+    <select id="salaryInput">
+      <option value="USD" data-i18n="optionUSD">USD</option>
+      <option value="LOCAL" data-i18n="optionLocal">Moneda local</option>
+    </select>
+
+    <div id="colombiaSalaryTypeWrap" style="display:none">
+      <label for="colombiaSalaryType" data-i18n="coSalaryTypeLabel">Tipo de salario (Colombia)</label>
+      <select id="colombiaSalaryType">
+        <option value="normal" data-i18n="coNormal">Salario Normal</option>
+        <option value="integral" data-i18n="coIntegral">Salario Integral</option>
+      </select>
+      <div class="helper" id="colombiaSalaryHelper" data-i18n-html="coSalaryHelper">
+        <b>Normal:</b> base + prestaciones (cesantías, prima, intereses, vacaciones) por separado.<br/>
+        <b>Integral:</b> incluye factor prestacional (mín 30%). IBC = 70% del integral. Requiere ≥13 SMMLV.
+      </div>
+    </div>
+
+    <div class="row">
+      <div>
+        <label for="health" data-i18n="health">Salud privada (mensual USD)</label>
+        <input type="number" id="health" value="0" min="0" step="10" />
+      </div>
+      <div>
+        <label for="bonus" data-i18n="bonus">Bono anual (% salario)</label>
+        <input type="number" id="bonus" value="0" min="0" step="1" />
+      </div>
+    </div>
+
+    <div id="extrasNotice" style="display:none;background:var(--accent-soft);color:var(--accent);border-radius:8px;padding:9px 11px;font-size:11.5px;margin-top:10px;line-height:1.45"></div>
+
+    <label for="contractorPlatform" data-i18n="contractorPlatformLabel">Plataforma para Contractor</label>
+    <select id="contractorPlatform"></select>
+
+    <label for="eorProvider" data-i18n="eorProviderLabel">Proveedor de EOR</label>
+    <select id="eorProvider"></select>
+
+    <details>
+      <summary data-i18n="editCountry">Editar datos del país seleccionado</summary>
+      <div class="country-editor" id="countryEditor"></div>
+      <button class="secondary" onclick="resetCountry()" data-i18n="resetDefaults">Restaurar valores por defecto</button>
+    </details>
+
+    <details>
+      <summary data-i18n="addCustomCountry">Agregar país personalizado</summary>
+      <div class="country-editor">
+        <label data-i18n="newCountryName">Nombre</label>
+        <input type="text" id="newCountryName" placeholder="Uruguay" />
+        <div class="row3">
+          <div>
+            <label data-i18n="newCountryCurrencyCode">Código moneda</label>
+            <input type="text" id="newCountryCurrency" placeholder="UYU" />
+          </div>
+          <div>
+            <label data-i18n="newCountryFxLabel">Tipo de cambio (1 USD = ?)</label>
+            <input type="number" id="newCountryFx" placeholder="40" step="0.01" />
+          </div>
+          <div>
+            <label data-i18n="newCountryChargesLabel">Cargas sociales (%)</label>
+            <input type="number" id="newCountryCharges" placeholder="22" step="0.5" />
+          </div>
+        </div>
+        <div class="row3">
+          <div>
+            <label data-i18n="newCountryThirteenthLabel">13er mes / aguinaldo</label>
+            <select id="newCountryThirteenth">
+              <option value="0" data-i18n="optionNo">No</option>
+              <option value="1" data-i18n="optionOneMonth">1 mes</option>
+              <option value="2" data-i18n="optionTwoMonths">2 meses</option>
+            </select>
+          </div>
+          <div>
+            <label data-i18n="newCountryVacationLabel">Vac. obligatorias (días)</label>
+            <input type="number" id="newCountryVacation" placeholder="15" step="1" />
+          </div>
+          <div>
+            <label data-i18n="newCountryEorLabel">EOR mes (USD)</label>
+            <input type="number" id="newCountryEor" placeholder="599" step="10" />
+          </div>
+        </div>
+        <button onclick="addCountry()" data-i18n="addCountryBtn">Agregar país</button>
+      </div>
+    </details>
+  </div>
+
+  <div>
+    <div class="results" id="results"></div>
+
+    <div class="panel" style="margin-top:20px">
+      <h2 data-i18n="comparisonHeader">Comparación a 12 meses</h2>
+      <canvas id="chart" height="220"></canvas>
+      <div class="helper" style="margin-top:10px" data-i18n="comparisonHelper">
+        Las barras muestran el costo anual total en USD para cada modalidad.
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="footer-note" data-i18n-html="footerNotes">
+  <b>Notas y supuestos:</b> Las tasas de cargas sociales, EOR fees y tipos de cambio son aproximaciones de referencia (2024-2026) y deben validarse con un contador o proveedor local antes de tomar decisiones. Las cargas patronales varían según industria, antigüedad y región. El modelo de Empleado Directo asume que ya existe entidad legal en el país; si necesitas incorporar entidad, suma costos legales y administrativos de tu lado.
+</div>
+
+<script>
+/* =========================================================
+   BASE DE DATOS DE PAÍSES
+   ========================================================= */
+const DEFAULT_COUNTRIES = {
+  // LATAM
+  "Colombia":   { currency: "COP", fx: 4100,  employerCharges: 0.32, thirteenth: 2,  vacationDays: 15, eorFee: 599, notes: "Incluye parafiscales (~9%), salud, pensión, ARL, cesantías y prima (~16%)." },
+  "México":     { currency: "MXN", fx: 17.5,  employerCharges: 0.33, thirteenth: 1,  vacationDays: 12, eorFee: 599, notes: "IMSS, Infonavit, ISN estatal (~2-3%), prima vacacional 25%." },
+  "Argentina":  { currency: "ARS", fx: 1000,  employerCharges: 0.28, thirteenth: 1,  vacationDays: 14, eorFee: 599, notes: "Cargas sociales 24-27%. SAC (aguinaldo) prorrateado." },
+  "Brasil":     { currency: "BRL", fx: 5.10,  employerCharges: 0.75, thirteenth: 1,  vacationDays: 30, eorFee: 599, notes: "Una de las cargas más altas: INSS (20%), FGTS (8%), 13º, férias +1/3, RAT, etc." },
+  "Perú":       { currency: "PEN", fx: 3.75,  employerCharges: 0.10, thirteenth: 2,  vacationDays: 30, eorFee: 599, notes: "EsSalud (9%), gratificaciones (2 sueldos) y CTS aprox 1 sueldo/año." },
+  "Uruguay":    { currency: "UYU", fx: 40,    employerCharges: 0.126, thirteenth: 1, vacationDays: 20, eorFee: 599, notes: "BPS aportes patronales: jubilatorios 7.5% + FONASA ~5% + FRL 0.125%. Aguinaldo legal (1 mes, dividido en junio y diciembre). Licencia anual 20 días." },
+  // NORTEAMÉRICA
+  "Estados Unidos": { currency: "USD", fx: 1, employerCharges: 0.13, thirteenth: 0,  vacationDays: 10, eorFee: 599, notes: "FICA (7.65%), FUTA, SUTA estatal, workers comp. Salud privada usualmente extra." },
+  "Canadá":     { currency: "CAD", fx: 1.36,  employerCharges: 0.12, thirteenth: 0,  vacationDays: 10, eorFee: 599, notes: "CPP, EI, WSIB, EHT. Varía por provincia." },
+  // EUROPA
+  "España":     { currency: "EUR", fx: 0.92,  employerCharges: 0.31, thirteenth: 2,  vacationDays: 22, eorFee: 599, notes: "Seguridad social ~29.9%, formación profesional. Pagas extra prorrateadas." },
+  "Países Bajos": { currency: "EUR", fx: 0.92, employerCharges: 0.20, thirteenth: 0, vacationDays: 20, eorFee: 599, notes: "Seguridad social ~20% + Holiday Allowance (vakantiegeld) 8% del salario anual obligatorio pagado en mayo. Pensión 4-7% común." },
+  "Ecuador":    { currency: "USD", fx: 1,     employerCharges: 0.1215, thirteenth: 2, vacationDays: 15, eorFee: 599, notes: "IESS aporte patronal 11.15% + IECE/SECAP 1%. Décimo tercero (1 sueldo) y décimo cuarto (1 SBU). Fondos de reserva tras 1er año." }
+};
+
+const CONTRACTOR_PLATFORMS = {
+  "Deel":  { fee: 49, type: "fijo", desc: "USD 49/mes por contractor" },
+  "Ontop": { fee: 45, type: "fijo", desc: "~USD 45/mes (varía por país)" }
+};
+
+// Países donde Koronet tiene entidad legal y por tanto puede contratar empleados directos
+const ENTITY_COUNTRIES = ["Colombia", "Ecuador", "Países Bajos", "Estados Unidos"];
+
+const EOR_PROVIDERS = {
+  "Deel EOR":  { fee: 599, desc: "USD 599/mes por empleado" },
+  "Ontop EOR": { fee: 449, desc: "USD 449/mes (LATAM)" }
+};
+
+/* =========================================================
+   INTERNACIONALIZACIÓN
+   ========================================================= */
+const COUNTRY_NAMES = {
+  "Colombia":       { es: "Colombia",        en: "Colombia" },
+  "México":         { es: "México",          en: "Mexico" },
+  "Argentina":      { es: "Argentina",       en: "Argentina" },
+  "Brasil":         { es: "Brasil",          en: "Brazil" },
+  "Perú":           { es: "Perú",            en: "Peru" },
+  "Uruguay":        { es: "Uruguay",         en: "Uruguay" },
+  "Estados Unidos": { es: "Estados Unidos",  en: "United States" },
+  "Canadá":         { es: "Canadá",          en: "Canada" },
+  "España":         { es: "España",          en: "Spain" },
+  "Países Bajos":   { es: "Países Bajos",    en: "Netherlands" },
+  "Ecuador":        { es: "Ecuador",         en: "Ecuador" }
+};
+
+const PLATFORM_DESCS = {
+  "Deel":  { es: "USD 49/mes por contractor",       en: "USD 49/mo per contractor" },
+  "Ontop": { es: "~USD 45/mes (varía por país)",    en: "~USD 45/mo (varies by country)" }
+};
+
+const EOR_DESCS = {
+  "Deel EOR":  { es: "USD 599/mes por empleado",  en: "USD 599/mo per employee" },
+  "Ontop EOR": { es: "USD 449/mes (LATAM)",       en: "USD 449/mo (LATAM)" }
+};
+
+const PLATFORM_NAMES = {};
+const EOR_NAMES = {};
+
+const TRANSLATIONS = {
+  es: {
+    pageTitle: "Calculadora de Costos de Contratación · Contractor / EOR / Empleado Directo",
+    appTitle: "Calculadora de Costos de Contratación Internacional",
+    appSubtitle: "Compara el costo total de contratar a una persona como <b>Contractor</b>, vía <b>EOR</b>, o como <b>Empleado Directo</b>. Resultados en moneda local y USD.",
+    paramsHeader: "Parámetros",
+    fxLoading: "Cargando tasas...",
+    fxRefresh: "Actualizar",
+    fxLiveRates: "✓ Tasas en vivo · {n} monedas · {time}",
+    fxFallback: "⚠ Usando tasas aproximadas (fallback)",
+    fxUpdating: "Actualizando tasas...",
+    countryLabel: "País",
+    grossSalary: "Salario bruto mensual",
+    grossSalaryHelper: "Salario que recibe la persona (bruto, antes de impuestos del empleado).",
+    inputCurrencyLabel: "Ingresar salario en:",
+    optionUSD: "USD",
+    optionLocal: "Moneda local",
+    coSalaryTypeLabel: "Tipo de salario (Colombia)",
+    coNormal: "Salario Normal",
+    coIntegral: "Salario Integral",
+    coSalaryHelper: "<b>Normal:</b> base + prestaciones (cesantías, prima, intereses, vacaciones) por separado.<br/><b>Integral:</b> incluye factor prestacional (mín 30%). IBC = 70% del integral. Requiere ≥13 SMMLV.",
+    health: "Salud privada (mensual USD)",
+    bonus: "Bono anual (% salario)",
+    contractorPlatformLabel: "Plataforma para Contractor",
+    eorProviderLabel: "Proveedor de EOR",
+    editCountry: "Editar datos del país seleccionado",
+    resetDefaults: "Restaurar valores por defecto",
+    addCustomCountry: "Agregar país personalizado",
+    newCountryName: "Nombre",
+    newCountryCurrencyCode: "Código moneda",
+    newCountryFxLabel: "Tipo de cambio (1 USD = ?)",
+    newCountryChargesLabel: "Cargas sociales (%)",
+    newCountryThirteenthLabel: "13er mes / aguinaldo",
+    optionNo: "No",
+    optionOneMonth: "1 mes",
+    optionTwoMonths: "2 meses",
+    newCountryVacationLabel: "Vac. obligatorias (días)",
+    newCountryEorLabel: "EOR mes (USD)",
+    addCountryBtn: "Agregar país",
+    comparisonHeader: "Comparación a 12 meses",
+    comparisonHelper: "Las barras muestran el costo anual total en USD para cada modalidad.",
+    footerNotes: "<b>Notas y supuestos:</b> Las tasas de cargas sociales, EOR fees y tipos de cambio son aproximaciones de referencia (2024-2026) y deben validarse con un contador o proveedor local antes de tomar decisiones. Las cargas patronales varían según industria, antigüedad y región. El modelo de Empleado Directo asume que ya existe entidad legal en el país; si necesitas incorporar entidad, suma costos legales y administrativos de tu lado.",
+    themeDark: "Oscuro",
+    themeLight: "Claro",
+    // Cards
+    contractorName: "Contractor",
+    contractorDesc: "Trabaja por factura/invoice. Sin cargas sociales para la empresa; la persona asume sus impuestos y beneficios.",
+    eorName: "EOR",
+    eorDesc: "Employer of Record: el EOR contrata legalmente a la persona en su país. Cumple legislación local sin necesidad de entidad.",
+    directName: "Empleado Directo",
+    directDesc: "Contrato laboral local con tu propia entidad. Mayor control y branding, requiere entidad legal y operación de RRHH.",
+    integralSalary: "Salario Integral",
+    // Breakdown lines
+    salaryFeeMonthly: "Salario / fee mensual",
+    platformFee: "Plataforma ({name})",
+    healthStipendOptional: "Stipend de salud (opcional)",
+    grossMonthlySalary: "Salario bruto mensual",
+    bonusProrated: "Bono prorrateado",
+    eorFeeLine: "EOR fee ({name})",
+    privateHealthLine: "Salud privada",
+    payrollProviderEst: "Payroll provider (estimado)",
+    legalOverheadEst: "Legal / HR overhead (estimado)",
+    // Generic charges
+    socialChargesPct: "Cargas sociales del empleador ({pct}%)",
+    thirteenthMonth: "13er mes / aguinaldo ({n} mes/año)",
+    vacationProvision: "Provisión vacaciones ({n} días)",
+    // Colombia
+    coIntegralCharges: "Cargas patronales sobre IBC (30% × 70% salario)",
+    coIntegralPrestaciones: "Prestaciones (incluidas en salario integral)",
+    coNormalCharges: "Cargas patronales (salud, pensión, ARL, parafiscales ~30.5%)",
+    coCesantias: "Cesantías (1 mes/año)",
+    coIntereses: "Intereses cesantías (12%)",
+    coPrima: "Prima de servicios (1 mes/año)",
+    coVacaciones: "Vacaciones (15 días/año)",
+    // Misc
+    lowestBadge: "MÁS BAJO",
+    perMonth: "/mes",
+    perMonthUSD: "USD/mes",
+    annualPrefix: "Anual:",
+    // Country editor
+    edCurrency: "Moneda",
+    edFx: "FX (1 USD =)",
+    edCharges: "Cargas (%)",
+    edThirteenth: "13er mes",
+    edVacation: "Vacaciones (días)",
+    edEor: "EOR (USD/mes)",
+    saveChanges: "Guardar cambios",
+    // Notice
+    extrasNoticeBoth: "ℹ️ <b>No estás incluyendo</b> salud privada ni bono. Si tu oferta los considera, ajusta los valores arriba.",
+    extrasNoticeHealth: "ℹ️ <b>No estás incluyendo</b> salud privada. Si tu oferta la considera, ajusta el valor arriba.",
+    extrasNoticeBonus: "ℹ️ <b>No estás incluyendo</b> bono anual. Si tu oferta lo considera, ajusta el valor arriba.",
+    alertFillFields: "Completa nombre, moneda, tipo de cambio y cargas sociales.",
+    notAvailable: "No disponible",
+    noEntityHere: "Koronet no tiene entidad legal en este país. Considera la modalidad EOR o Contractor."
+  },
+  en: {
+    pageTitle: "Hiring Cost Calculator · Contractor / EOR / Direct Employee",
+    appTitle: "International Hiring Cost Calculator",
+    appSubtitle: "Compare the total cost of hiring as a <b>Contractor</b>, via <b>EOR</b>, or as a <b>Direct Employee</b>. Results in local currency and USD.",
+    paramsHeader: "Parameters",
+    fxLoading: "Loading rates...",
+    fxRefresh: "Refresh",
+    fxLiveRates: "✓ Live rates · {n} currencies · {time}",
+    fxFallback: "⚠ Using fallback rates",
+    fxUpdating: "Updating rates...",
+    countryLabel: "Country",
+    grossSalary: "Gross monthly salary",
+    grossSalaryHelper: "Salary the person receives (gross, before employee taxes).",
+    inputCurrencyLabel: "Input salary in:",
+    optionUSD: "USD",
+    optionLocal: "Local currency",
+    coSalaryTypeLabel: "Salary type (Colombia)",
+    coNormal: "Standard salary",
+    coIntegral: "Integral salary",
+    coSalaryHelper: "<b>Standard:</b> base + benefits (severance, bonus, interest, vacation) accrued separately.<br/><b>Integral:</b> includes benefits factor (min 30%). Contribution base = 70% of integral. Requires ≥13 monthly minimum wages.",
+    health: "Private health (monthly USD)",
+    bonus: "Annual bonus (% of salary)",
+    contractorPlatformLabel: "Contractor platform",
+    eorProviderLabel: "EOR provider",
+    editCountry: "Edit selected country data",
+    resetDefaults: "Restore default values",
+    addCustomCountry: "Add custom country",
+    newCountryName: "Name",
+    newCountryCurrencyCode: "Currency code",
+    newCountryFxLabel: "Exchange rate (1 USD = ?)",
+    newCountryChargesLabel: "Social charges (%)",
+    newCountryThirteenthLabel: "13th month / bonus",
+    optionNo: "No",
+    optionOneMonth: "1 month",
+    optionTwoMonths: "2 months",
+    newCountryVacationLabel: "Mandatory vacation (days)",
+    newCountryEorLabel: "EOR per month (USD)",
+    addCountryBtn: "Add country",
+    comparisonHeader: "12-month comparison",
+    comparisonHelper: "Bars show the total annual cost in USD for each modality.",
+    footerNotes: "<b>Notes and assumptions:</b> Social charge rates, EOR fees, and exchange rates are approximations (2024-2026) and should be validated with a local accountant or provider before making decisions. Employer charges vary by industry, tenure, and region. The Direct Employee model assumes a legal entity already exists in the country; if you need to incorporate, add legal and administrative setup costs separately.",
+    themeDark: "Dark",
+    themeLight: "Light",
+    // Cards
+    contractorName: "Contractor",
+    contractorDesc: "Works on invoice. No employer social charges; the person handles their own taxes and benefits.",
+    eorName: "EOR",
+    eorDesc: "Employer of Record: the EOR legally hires the person in their country. Local compliance without setting up an entity.",
+    directName: "Direct Employee",
+    directDesc: "Local employment contract with your own entity. Greater control and branding, requires legal entity and HR operations.",
+    integralSalary: "Integral Salary",
+    // Breakdown lines
+    salaryFeeMonthly: "Monthly salary / fee",
+    platformFee: "Platform ({name})",
+    healthStipendOptional: "Health stipend (optional)",
+    grossMonthlySalary: "Gross monthly salary",
+    bonusProrated: "Prorated bonus",
+    eorFeeLine: "EOR fee ({name})",
+    privateHealthLine: "Private health",
+    payrollProviderEst: "Payroll provider (est.)",
+    legalOverheadEst: "Legal / HR overhead (est.)",
+    // Generic charges
+    socialChargesPct: "Employer social charges ({pct}%)",
+    thirteenthMonth: "13th month / bonus ({n} mo/yr)",
+    vacationProvision: "Vacation accrual ({n} days)",
+    // Colombia
+    coIntegralCharges: "Employer charges on contribution base (30% × 70% salary)",
+    coIntegralPrestaciones: "Benefits (included in integral salary)",
+    coNormalCharges: "Employer charges (health, pension, ARL, parafiscales ~30.5%)",
+    coCesantias: "Severance (1 mo/yr)",
+    coIntereses: "Severance interest (12%)",
+    coPrima: "Service bonus (1 mo/yr)",
+    coVacaciones: "Vacation (15 days/yr)",
+    // Misc
+    lowestBadge: "LOWEST",
+    perMonth: "/mo",
+    perMonthUSD: "USD/mo",
+    annualPrefix: "Annual:",
+    // Country editor
+    edCurrency: "Currency",
+    edFx: "FX (1 USD =)",
+    edCharges: "Charges (%)",
+    edThirteenth: "13th mo",
+    edVacation: "Vacation (days)",
+    edEor: "EOR (USD/mo)",
+    saveChanges: "Save changes",
+    // Notice
+    extrasNoticeBoth: "ℹ️ <b>You are not including</b> private health or bonus. If your offer covers them, adjust the values above.",
+    extrasNoticeHealth: "ℹ️ <b>You are not including</b> private health. If your offer covers it, adjust the value above.",
+    extrasNoticeBonus: "ℹ️ <b>You are not including</b> an annual bonus. If your offer covers it, adjust the value above.",
+    alertFillFields: "Fill in name, currency, exchange rate and social charges.",
+    notAvailable: "Not available",
+    noEntityHere: "Koronet has no legal entity in this country. Consider the EOR or Contractor option."
+  }
+};
+
+let currentLang = "es";
+
+function t(key, params) {
+  let str = (TRANSLATIONS[currentLang] && TRANSLATIONS[currentLang][key])
+         || (TRANSLATIONS.es[key])
+         || key;
+  if (params) {
+    Object.keys(params).forEach(k => {
+      str = str.replace(new RegExp("\\{" + k + "\\}", "g"), params[k]);
+    });
+  }
+  return str;
+}
+
+function applyLanguage(lang) {
+  currentLang = lang;
+  document.documentElement.setAttribute("lang", lang);
+  try { localStorage.setItem("calc-lang", lang); } catch (e) {}
+
+  // Texto plano
+  document.querySelectorAll("[data-i18n]").forEach(el => {
+    const key = el.getAttribute("data-i18n");
+    el.textContent = t(key);
+  });
+  // HTML (admite <b>, <br/>, etc.)
+  document.querySelectorAll("[data-i18n-html]").forEach(el => {
+    const key = el.getAttribute("data-i18n-html");
+    el.innerHTML = t(key);
+  });
+
+  // Botón de idioma: muestra el código del idioma ACTUAL (EN o ES)
+  const langLbl = document.getElementById("langToggleLabel");
+  if (langLbl) langLbl.textContent = lang.toUpperCase();
+  // Actualizar banderas y opción activa
+  if (typeof refreshLangFlags === "function") refreshLangFlags();
+
+  // Botón de tema (actualizar etiqueta dependiente del tema actual)
+  const theme = document.documentElement.getAttribute("data-theme") || "light";
+  const themeLbl = document.getElementById("themeToggleLabel");
+  if (themeLbl) themeLbl.textContent = (theme === "dark") ? t("themeLight") : t("themeDark");
+  const themeToggleBtn = document.getElementById("themeToggle");
+  if (themeToggleBtn) themeToggleBtn.title = (lang === "es") ? "Cambiar tema" : "Toggle theme";
+
+  // Re-poblar selectores con nombres traducidos y re-renderizar todo
+  if (typeof populateSelects === "function") populateSelects();
+  if (typeof recalc === "function") recalc();
+}
+
+function flagSVG(lang, size) {
+  size = size || 22;
+  const baseStyle = "display:block;border-radius:50%;border:1px solid rgba(0,0,0,0.1);flex-shrink:0";
+  if (lang === "es") {
+    return `<svg viewBox="0 0 24 24" width="${size}" height="${size}" style="${baseStyle}" aria-label="Español">
+      <rect width="24" height="6" fill="#aa151b"/>
+      <rect y="6" width="24" height="12" fill="#f1bf00"/>
+      <rect y="18" width="24" height="6" fill="#aa151b"/>
+    </svg>`;
+  }
+  // English / US flag
+  return `<svg viewBox="0 0 24 24" width="${size}" height="${size}" style="${baseStyle};background:#fff" aria-label="English">
+    <g fill="#bf0a30">
+      <rect width="24" height="1.85"/>
+      <rect y="3.69" width="24" height="1.85"/>
+      <rect y="7.38" width="24" height="1.85"/>
+      <rect y="11.08" width="24" height="1.85"/>
+      <rect y="14.77" width="24" height="1.85"/>
+      <rect y="18.46" width="24" height="1.85"/>
+      <rect y="22.15" width="24" height="1.85"/>
+    </g>
+    <rect width="11" height="13" fill="#002868"/>
+  </svg>`;
+}
+
+function refreshLangFlags() {
+  const current = document.getElementById("currentLangFlag");
+  if (current) current.innerHTML = flagSVG(currentLang, 22);
+  document.querySelectorAll(".flag-slot[data-flag]").forEach(el => {
+    el.innerHTML = flagSVG(el.getAttribute("data-flag"), 20);
+  });
+  document.querySelectorAll(".lang-option").forEach(el => {
+    el.classList.toggle("active", el.getAttribute("data-lang") === currentLang);
+  });
+}
+
+function toggleLangMenu(e) {
+  if (e) { e.stopPropagation(); e.preventDefault(); }
+  const dd = document.getElementById("langDropdown");
+  if (dd) dd.classList.toggle("open");
+}
+function closeLangMenu() {
+  const dd = document.getElementById("langDropdown");
+  if (dd) dd.classList.remove("open");
+}
+function selectLang(lang) {
+  applyLanguage(lang);
+  closeLangMenu();
+}
+// Click fuera del dropdown lo cierra
+document.addEventListener("click", (e) => {
+  const dd = document.getElementById("langDropdown");
+  if (dd && !dd.contains(e.target)) closeLangMenu();
+});
+
+// Inicializar idioma desde localStorage o idioma del browser
+(function initLang() {
+  let saved = null;
+  try { saved = localStorage.getItem("calc-lang"); } catch (e) {}
+  if (saved === "es" || saved === "en") {
+    currentLang = saved;
+  } else {
+    const browserLang = (navigator.language || "es").toLowerCase();
+    currentLang = browserLang.startsWith("en") ? "en" : "es";
+  }
+  document.documentElement.setAttribute("lang", currentLang);
+})();
+
+// Estado local
+let countries = JSON.parse(JSON.stringify(DEFAULT_COUNTRIES));
+let currentCountry = "Colombia";
+let fxLastUpdate = null;
+let fxSource = "hardcoded";
+
+/* =========================================================
+   TEMA (CLARO / OSCURO)
+   ========================================================= */
+function applyTheme(theme) {
+  document.documentElement.setAttribute("data-theme", theme);
+  try { localStorage.setItem("calc-theme", theme); } catch (e) {}
+  const icon = document.getElementById("themeToggleIcon");
+  const label = document.getElementById("themeToggleLabel");
+  if (icon && label) {
+    if (theme === "dark") { icon.textContent = "☀️"; label.textContent = t("themeLight"); }
+    else { icon.textContent = "🌙"; label.textContent = t("themeDark"); }
+  }
+  // Re-render chart con nuevos colores
+  if (typeof recalc === "function") setTimeout(recalc, 0);
+}
+function toggleTheme() {
+  const current = document.documentElement.getAttribute("data-theme") || "light";
+  applyTheme(current === "light" ? "dark" : "light");
+}
+// Inicializar tema desde localStorage o preferencia del sistema
+(function initTheme() {
+  let saved = null;
+  try { saved = localStorage.getItem("calc-theme"); } catch (e) {}
+  if (saved === "light" || saved === "dark") {
+    document.documentElement.setAttribute("data-theme", saved);
+  } else if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+    document.documentElement.setAttribute("data-theme", "dark");
+  } else {
+    document.documentElement.setAttribute("data-theme", "light");
+  }
+})();
+
+/* =========================================================
+   TASAS DE CAMBIO EN VIVO
+   ========================================================= */
+async function refreshFx() {
+  const statusEl = document.getElementById("fxStatus");
+  statusEl.textContent = t("fxUpdating");
+  try {
+    const resp = await fetch("https://open.er-api.com/v6/latest/USD");
+    if (!resp.ok) throw new Error("HTTP " + resp.status);
+    const data = await resp.json();
+    if (data.result !== "success") throw new Error("API result: " + data.result);
+    const rates = data.rates;
+    let updated = 0;
+    Object.keys(countries).forEach(name => {
+      const c = countries[name];
+      if (rates[c.currency]) {
+        c.fx = rates[c.currency];
+        updated++;
+      }
+    });
+    fxLastUpdate = new Date();
+    fxSource = "open.er-api.com";
+    const locale = currentLang === "en" ? "en-US" : "es-CO";
+    const localTime = fxLastUpdate.toLocaleString(locale, { dateStyle: "short", timeStyle: "short" });
+    statusEl.innerHTML = t("fxLiveRates", { n: updated, time: `<span style="color:var(--good)">${localTime}</span>` });
+    recalc();
+  } catch (e) {
+    console.warn("FX fetch failed:", e);
+    statusEl.innerHTML = `<span style="color:var(--warn)">${t("fxFallback")}</span> · ${e.message}`;
+    fxSource = "hardcoded";
+  }
+}
+
+/* =========================================================
+   POBLAR SELECTS
+   ========================================================= */
+function getCountryDisplayName(key) {
+  return (COUNTRY_NAMES[key] && COUNTRY_NAMES[key][currentLang]) || key;
+}
+function getPlatformDisplayName(key) {
+  return (PLATFORM_NAMES[key] && PLATFORM_NAMES[key][currentLang]) || key;
+}
+function getEorDisplayName(key) {
+  return (EOR_NAMES[key] && EOR_NAMES[key][currentLang]) || key;
+}
+function getPlatformDesc(key) {
+  return (PLATFORM_DESCS[key] && PLATFORM_DESCS[key][currentLang]) || "";
+}
+function getEorDesc(key) {
+  return (EOR_DESCS[key] && EOR_DESCS[key][currentLang]) || "";
+}
+
+function populateSelects() {
+  const countrySel = document.getElementById("country");
+  const prevCountry = countrySel.value || currentCountry;
+  countrySel.innerHTML = "";
+  Object.keys(countries).forEach(c => {
+    const opt = document.createElement("option");
+    opt.value = c; opt.textContent = getCountryDisplayName(c);
+    countrySel.appendChild(opt);
+  });
+  countrySel.value = prevCountry || currentCountry;
+
+  const cpSel = document.getElementById("contractorPlatform");
+  const prevCp = cpSel.value;
+  cpSel.innerHTML = "";
+  Object.keys(CONTRACTOR_PLATFORMS).forEach(p => {
+    const opt = document.createElement("option");
+    opt.value = p; opt.textContent = getPlatformDisplayName(p) + " · " + getPlatformDesc(p);
+    cpSel.appendChild(opt);
+  });
+  if (prevCp) cpSel.value = prevCp;
+
+  const eorSel = document.getElementById("eorProvider");
+  const prevEor = eorSel.value;
+  eorSel.innerHTML = "";
+  Object.keys(EOR_PROVIDERS).forEach(p => {
+    const opt = document.createElement("option");
+    opt.value = p; opt.textContent = getEorDisplayName(p) + " · " + getEorDesc(p);
+    eorSel.appendChild(opt);
+  });
+  if (prevEor) eorSel.value = prevEor;
+}
+
+/* =========================================================
+   FORMATO
+   ========================================================= */
+function fmt(value, currency) {
+  try {
+    const locale = currentLang === "en" ? "en-US" : "es-CO";
+    return new Intl.NumberFormat(locale, {
+      style: "currency",
+      currency,
+      maximumFractionDigits: 0
+    }).format(value);
+  } catch (e) {
+    return currency + " " + value.toFixed(0);
+  }
+}
+function fmtUSD(v) { return fmt(v, "USD"); }
+
+/* =========================================================
+   CÁLCULOS
+   ========================================================= */
+function getInputs() {
+  const country = document.getElementById("country").value;
+  const cdata = countries[country];
+  const salaryInput = parseFloat(document.getElementById("salary").value) || 0;
+  const inputCurrency = document.getElementById("salaryInput").value;
+
+  // Convertir salario mensual a USD y a local
+  let salaryUSD, salaryLOCAL;
+  if (inputCurrency === "USD") {
+    salaryUSD = salaryInput;
+    salaryLOCAL = salaryInput * cdata.fx;
+  } else {
+    salaryLOCAL = salaryInput;
+    salaryUSD = salaryInput / cdata.fx;
+  }
+
+  return {
+    country,
+    cdata,
+    salaryUSD,
+    salaryLOCAL,
+    healthUSD: parseFloat(document.getElementById("health").value) || 0,
+    bonusPct: (parseFloat(document.getElementById("bonus").value) || 0) / 100,
+    contractorPlatform: document.getElementById("contractorPlatform").value,
+    eorProvider: document.getElementById("eorProvider").value,
+    colombiaSalaryType: document.getElementById("colombiaSalaryType").value
+  };
+}
+
+// Calcula cargas + prestaciones para empleo formal (EOR o Directo)
+function calcEmployerExtras(inp) {
+  const salaryUSD = inp.salaryUSD;
+  const items = [];
+
+  if (inp.country === "Colombia" && inp.colombiaSalaryType === "integral") {
+    const ibc = salaryUSD * 0.70;
+    const cargasPatronales = ibc * 0.30;
+    items.push([t("coIntegralCharges"), cargasPatronales]);
+    items.push([t("coIntegralPrestaciones"), 0]);
+  } else if (inp.country === "Colombia" && inp.colombiaSalaryType === "normal") {
+    const cargasPatronales = salaryUSD * 0.305;
+    items.push([t("coNormalCharges"), cargasPatronales]);
+    items.push([t("coCesantias"), salaryUSD * 0.0833]);
+    items.push([t("coIntereses"), salaryUSD * 0.01]);
+    items.push([t("coPrima"), salaryUSD * 0.0833]);
+    items.push([t("coVacaciones"), salaryUSD * 0.0417]);
+  } else {
+    const employerChargesUSD = salaryUSD * inp.cdata.employerCharges;
+    const thirteenthMonthlyUSD = (salaryUSD * inp.cdata.thirteenth) / 12;
+    const vacationMonthlyUSD = (inp.cdata.vacationDays * (salaryUSD / 22)) / 12;
+    items.push([t("socialChargesPct", { pct: (inp.cdata.employerCharges*100).toFixed(1) }), employerChargesUSD]);
+    items.push([t("thirteenthMonth", { n: inp.cdata.thirteenth }), thirteenthMonthlyUSD]);
+    items.push([t("vacationProvision", { n: inp.cdata.vacationDays }), vacationMonthlyUSD]);
+  }
+
+  return items;
+}
+
+function calcContractor(inp) {
+  // Como contractor: paga el bruto, no hay cargas sociales, plataforma, opcional aporte salud
+  const platformFee = CONTRACTOR_PLATFORMS[inp.contractorPlatform].fee;
+  const healthStipend = inp.healthUSD;
+  const monthlyUSD = inp.salaryUSD + platformFee + healthStipend;
+  return {
+    name: t("contractorName"),
+    desc: t("contractorDesc"),
+    platformBadge: inp.contractorPlatform,
+    monthlyUSD,
+    annualUSD: monthlyUSD * 12,
+    breakdown: [
+      [t("salaryFeeMonthly"), inp.salaryUSD],
+      [t("platformFee", { name: inp.contractorPlatform }), platformFee],
+      [t("healthStipendOptional"), healthStipend]
+    ]
+  };
+}
+
+function calcEOR(inp) {
+  const eorFee = EOR_PROVIDERS[inp.eorProvider].fee;
+  const salaryUSD = inp.salaryUSD;
+  const extras = calcEmployerExtras(inp);
+  const bonusMonthlyUSD = (salaryUSD * 12 * inp.bonusPct) / 12;
+  const healthUSD = inp.healthUSD;
+
+  const extrasTotal = extras.reduce((a, [, v]) => a + v, 0);
+  const monthlyUSD = salaryUSD + extrasTotal + bonusMonthlyUSD +
+                     eorFee + healthUSD;
+
+  const colombiaIntegralNote = (inp.country === "Colombia" && inp.colombiaSalaryType === "integral")
+    ? " · " + t("integralSalary") : "";
+
+  return {
+    name: t("eorName") + colombiaIntegralNote,
+    desc: t("eorDesc"),
+    platformBadge: inp.eorProvider.replace(/\s*EOR$/i, ""),
+    monthlyUSD,
+    annualUSD: monthlyUSD * 12,
+    breakdown: [
+      [t("grossMonthlySalary"), salaryUSD],
+      ...extras,
+      [t("bonusProrated"), bonusMonthlyUSD],
+      [t("eorFeeLine", { name: inp.eorProvider }), eorFee],
+      [t("privateHealthLine"), healthUSD]
+    ]
+  };
+}
+
+function calcDirect(inp) {
+  // Solo disponible en países donde Koronet tiene entidad legal
+  if (!ENTITY_COUNTRIES.includes(inp.country)) {
+    return {
+      name: t("directName"),
+      desc: t("directDesc"),
+      unavailable: true,
+      monthlyUSD: 0,
+      annualUSD: 0,
+      breakdown: []
+    };
+  }
+  const salaryUSD = inp.salaryUSD;
+  const extras = calcEmployerExtras(inp);
+  const bonusMonthlyUSD = (salaryUSD * 12 * inp.bonusPct) / 12;
+  const healthUSD = inp.healthUSD;
+  // Costos de operación legal/contable por empleado (estimado)
+  const payrollProviderUSD = 150;
+  const legalOverheadUSD = 100;
+
+  const extrasTotal = extras.reduce((a, [, v]) => a + v, 0);
+  const monthlyUSD = salaryUSD + extrasTotal + bonusMonthlyUSD +
+                     payrollProviderUSD + legalOverheadUSD + healthUSD;
+
+  const colombiaIntegralNote = (inp.country === "Colombia" && inp.colombiaSalaryType === "integral")
+    ? " · " + t("integralSalary") : "";
+
+  return {
+    name: t("directName") + colombiaIntegralNote,
+    desc: t("directDesc"),
+    monthlyUSD,
+    annualUSD: monthlyUSD * 12,
+    breakdown: [
+      [t("grossMonthlySalary"), salaryUSD],
+      ...extras,
+      [t("bonusProrated"), bonusMonthlyUSD],
+      [t("payrollProviderEst"), payrollProviderUSD],
+      [t("legalOverheadEst"), legalOverheadUSD],
+      [t("privateHealthLine"), healthUSD]
+    ]
+  };
+}
+
+/* =========================================================
+   RENDER
+   ========================================================= */
+function renderCard(scenario, fx, currency, isBest) {
+  if (scenario.unavailable) {
+    return `
+      <div class="card unavailable">
+        <h3>${scenario.name}</h3>
+        <div class="desc">${scenario.desc}</div>
+        <div class="unavailable-body">
+          <div class="unavailable-icon">🚫</div>
+          <div class="unavailable-title">${t("notAvailable")}</div>
+          <div class="unavailable-msg">${t("noEntityHere")}</div>
+        </div>
+      </div>
+    `;
+  }
+  const monthlyLOCAL = scenario.monthlyUSD * fx;
+  const annualUSD = scenario.annualUSD;
+  const platformBadgeHTML = scenario.platformBadge
+    ? `<span class="platform-badge">via ${scenario.platformBadge}</span>`
+    : "";
+  return `
+    <div class="card ${isBest ? "best" : ""}">
+      ${isBest ? '<span class="badge">' + t("lowestBadge") + '</span>' : ''}
+      <h3>${scenario.name}${platformBadgeHTML}</h3>
+      <div class="desc">${scenario.desc}</div>
+      <div class="total">${fmt(monthlyLOCAL, currency)}<span style="font-size:13px;color:var(--muted)"> ${t("perMonth")}</span></div>
+      <div class="total-usd">${fmtUSD(scenario.monthlyUSD)} ${t("perMonthUSD")}</div>
+      <div class="total-annual">${t("annualPrefix")} ${fmtUSD(annualUSD)} USD · ${fmt(annualUSD * fx, currency)}</div>
+      <ul class="lineitems">
+        ${scenario.breakdown.map(([label, val]) =>
+          `<li><span>${label}</span><span>${fmtUSD(val)}</span></li>`
+        ).join("")}
+      </ul>
+    </div>
+  `;
+}
+
+function renderChart(scenarios) {
+  const canvas = document.getElementById("chart");
+  const ctx = canvas.getContext("2d");
+  const W = canvas.width = canvas.clientWidth;
+  const H = canvas.height;
+  ctx.clearRect(0, 0, W, H);
+  const max = Math.max(...scenarios.map(s => s.annualUSD));
+  const barWidth = W / scenarios.length - 40;
+  const styles = getComputedStyle(document.documentElement);
+  const colors = [
+    styles.getPropertyValue("--chart-bar-1").trim(),
+    styles.getPropertyValue("--chart-bar-2").trim(),
+    styles.getPropertyValue("--chart-bar-3").trim()
+  ];
+  const textColor = styles.getPropertyValue("--text").trim();
+  const mutedColor = styles.getPropertyValue("--muted").trim();
+  scenarios.forEach((s, i) => {
+    const x = i * (W / scenarios.length) + 20;
+    const barH = (s.annualUSD / max) * (H - 60);
+    const y = H - barH - 30;
+    // Bar (con esquinas redondeadas)
+    ctx.fillStyle = colors[i];
+    if (ctx.roundRect) {
+      ctx.beginPath();
+      ctx.roundRect(x, y, barWidth, barH, [8, 8, 0, 0]);
+      ctx.fill();
+    } else {
+      ctx.fillRect(x, y, barWidth, barH);
+    }
+    // Label inferior
+    ctx.fillStyle = textColor;
+    ctx.font = "500 12px -apple-system, Segoe UI, sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText(s.name, x + barWidth/2, H - 10);
+    // Valor encima
+    ctx.fillStyle = mutedColor;
+    ctx.font = "600 13px -apple-system, Segoe UI, sans-serif";
+    ctx.fillText(fmtUSD(s.annualUSD), x + barWidth/2, y - 6);
+  });
+}
+
+function renderCountryEditor() {
+  const c = countries[currentCountry];
+  const div = document.getElementById("countryEditor");
+  div.innerHTML = `
+    <div class="row3">
+      <div>
+        <label>${t("edCurrency")}</label>
+        <input type="text" id="ed_currency" value="${c.currency}" />
+      </div>
+      <div>
+        <label>${t("edFx")}</label>
+        <input type="number" id="ed_fx" value="${c.fx}" step="0.01" />
+      </div>
+      <div>
+        <label>${t("edCharges")}</label>
+        <input type="number" id="ed_charges" value="${(c.employerCharges*100).toFixed(1)}" step="0.5" />
+      </div>
+    </div>
+    <div class="row3">
+      <div>
+        <label>${t("edThirteenth")}</label>
+        <input type="number" id="ed_thirteenth" value="${c.thirteenth}" step="1" />
+      </div>
+      <div>
+        <label>${t("edVacation")}</label>
+        <input type="number" id="ed_vacation" value="${c.vacationDays}" step="1" />
+      </div>
+      <div>
+        <label>${t("edEor")}</label>
+        <input type="number" id="ed_eor" value="${c.eorFee}" step="10" />
+      </div>
+    </div>
+    <div class="helper" style="margin-top:8px">${c.notes || ""}</div>
+    <button onclick="saveCountryEdits()">${t("saveChanges")}</button>
+  `;
+}
+
+function saveCountryEdits() {
+  const c = countries[currentCountry];
+  c.currency = document.getElementById("ed_currency").value || c.currency;
+  c.fx = parseFloat(document.getElementById("ed_fx").value) || c.fx;
+  c.employerCharges = (parseFloat(document.getElementById("ed_charges").value) || 0) / 100;
+  c.thirteenth = parseFloat(document.getElementById("ed_thirteenth").value) || 0;
+  c.vacationDays = parseFloat(document.getElementById("ed_vacation").value) || 0;
+  c.eorFee = parseFloat(document.getElementById("ed_eor").value) || c.eorFee;
+  recalc();
+}
+
+function resetCountry() {
+  countries[currentCountry] = JSON.parse(JSON.stringify(DEFAULT_COUNTRIES[currentCountry]));
+  renderCountryEditor();
+  recalc();
+}
+
+function addCountry() {
+  const name = document.getElementById("newCountryName").value.trim();
+  const currency = document.getElementById("newCountryCurrency").value.trim().toUpperCase();
+  const fx = parseFloat(document.getElementById("newCountryFx").value);
+  const charges = parseFloat(document.getElementById("newCountryCharges").value);
+  const thirteenth = parseFloat(document.getElementById("newCountryThirteenth").value);
+  const vacation = parseFloat(document.getElementById("newCountryVacation").value);
+  const eor = parseFloat(document.getElementById("newCountryEor").value);
+  if (!name || !currency || !fx || isNaN(charges)) {
+    alert(t("alertFillFields"));
+    return;
+  }
+  countries[name] = {
+    currency, fx,
+    employerCharges: charges / 100,
+    thirteenth: thirteenth || 0,
+    vacationDays: vacation || 0,
+    eorFee: eor || 599,
+    notes: ""
+  };
+  COUNTRY_NAMES[name] = { es: name, en: name };
+  currentCountry = name;
+  populateSelects();
+  document.getElementById("country").value = name;
+  renderCountryEditor();
+  recalc();
+}
+
+/* =========================================================
+   ACTUALIZAR
+   ========================================================= */
+function recalc() {
+  const inp = getInputs();
+  currentCountry = inp.country;
+  document.getElementById("salaryCurrency").textContent =
+    "(" + (document.getElementById("salaryInput").value === "USD" ? "USD" : inp.cdata.currency) + ")";
+  document.getElementById("colombiaSalaryTypeWrap").style.display =
+    (inp.country === "Colombia") ? "block" : "none";
+
+  // Banner de notificación cuando salud o bono están en 0
+  const notice = document.getElementById("extrasNotice");
+  const noHealth = inp.healthUSD === 0;
+  const noBonus = inp.bonusPct === 0;
+  if (noHealth && noBonus) {
+    notice.innerHTML = t("extrasNoticeBoth");
+    notice.style.display = "block";
+  } else if (noHealth) {
+    notice.innerHTML = t("extrasNoticeHealth");
+    notice.style.display = "block";
+  } else if (noBonus) {
+    notice.innerHTML = t("extrasNoticeBonus");
+    notice.style.display = "block";
+  } else {
+    notice.style.display = "none";
+  }
+
+  const contractor = calcContractor(inp);
+  const eor = calcEOR(inp);
+  const direct = calcDirect(inp);
+  const scenarios = [contractor, eor, direct];
+
+  // Para el "MÁS BAJO" y el chart, solo consideramos los disponibles
+  const available = scenarios.filter(s => !s.unavailable);
+  const min = available.length ? Math.min(...available.map(s => s.monthlyUSD)) : null;
+  const html = scenarios.map(s => renderCard(s, inp.cdata.fx, inp.cdata.currency, !s.unavailable && s.monthlyUSD === min)).join("");
+  document.getElementById("results").innerHTML = html;
+  renderChart(available);
+  renderCountryEditor();
+}
+
+/* =========================================================
+   EVENTOS
+   ========================================================= */
+function bindEvents() {
+  ["country","salary","salaryInput","health","bonus","contractorPlatform","eorProvider","colombiaSalaryType"]
+    .forEach(id => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.addEventListener("input", recalc);
+      el.addEventListener("change", recalc);
+    });
+  window.addEventListener("resize", recalc);
+}
+
+// Init
+populateSelects();
+bindEvents();
+applyLanguage(currentLang);
+applyTheme(document.documentElement.getAttribute("data-theme") || "light");
+refreshFx();
+</script>
+</body>
+</html>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
